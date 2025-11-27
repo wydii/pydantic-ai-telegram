@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pydantic-ai-telegram"
-version = "0.0.2"
+version = "0.1.2"
 description = "A Python library for integrating Pydantic AI agents with Telegram bots"
 authors = [
     {name = "Wydii", email = "yd@bageera.ai"}
