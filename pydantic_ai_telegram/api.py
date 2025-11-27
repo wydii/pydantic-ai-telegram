@@ -24,6 +24,10 @@ class TelegramAPIError(Exception):
         super().__init__(f"Telegram API Error {error_code}: {description}")
 
 
+# Telegram API limits
+MAX_MESSAGE_LENGTH = 4096
+
+
 class TelegramAPI:
     """
     HTTP client for Telegram Bot API.
@@ -157,6 +161,59 @@ class TelegramAPI:
         
         return updates
     
+    def _split_message(self, text: str, max_length: int = MAX_MESSAGE_LENGTH) -> list[str]:
+        """
+        Split a long message into chunks that fit within Telegram's limits.
+        Tries to split at natural boundaries (newlines, then spaces) when possible.
+        
+        Args:
+            text: The text to split
+            max_length: Maximum length per chunk (default: 4096)
+            
+        Returns:
+            List of text chunks
+        """
+        if len(text) <= max_length:
+            return [text]
+        
+        chunks: list[str] = []
+        remaining = text
+        
+        while remaining:
+            if len(remaining) <= max_length:
+                chunks.append(remaining)
+                break
+            
+            # Find the best split point
+            chunk = remaining[:max_length]
+            
+            # Try to split at double newline (paragraph)
+            split_pos = chunk.rfind('\n\n')
+            if split_pos > max_length // 2:
+                chunks.append(remaining[:split_pos].rstrip())
+                remaining = remaining[split_pos:].lstrip()
+                continue
+            
+            # Try to split at single newline
+            split_pos = chunk.rfind('\n')
+            if split_pos > max_length // 2:
+                chunks.append(remaining[:split_pos].rstrip())
+                remaining = remaining[split_pos:].lstrip()
+                continue
+            
+            # Try to split at space
+            split_pos = chunk.rfind(' ')
+            if split_pos > max_length // 2:
+                chunks.append(remaining[:split_pos].rstrip())
+                remaining = remaining[split_pos:].lstrip()
+                continue
+            
+            # Force split at max_length (no good boundary found)
+            chunks.append(remaining[:max_length])
+            remaining = remaining[max_length:]
+        
+        return chunks
+
     async def send_message(
         self,
         chat_id: int,
@@ -165,29 +222,41 @@ class TelegramAPI:
         parse_mode: Optional[str] = None,
     ) -> dict[str, Any]:
         """
-        Send a text message.
+        Send a text message. Automatically splits long messages into chunks.
         
         Args:
             chat_id: Unique identifier for the target chat
             text: Text of the message to be sent
-            reply_to_message_id: If specified, the message is sent as a reply
+            reply_to_message_id: If specified, the first message is sent as a reply
             parse_mode: Mode for parsing entities (Markdown, HTML)
             
         Returns:
-            API response
+            API response (from the last message sent)
         """
-        data: dict[str, Any] = {
-            "chat_id": chat_id,
-            "text": text,
-        }
+        # Split message if it exceeds Telegram's limit
+        chunks = self._split_message(text)
         
-        if reply_to_message_id:
-            data["reply_to_message_id"] = reply_to_message_id
+        if len(chunks) > 1:
+            logger.debug(f"Splitting long message ({len(text)} chars) into {len(chunks)} chunks")
         
-        if parse_mode:
-            data["parse_mode"] = parse_mode
+        result: dict[str, Any] = {}
         
-        return await self._request("sendMessage", data=data)
+        for i, chunk in enumerate(chunks):
+            data: dict[str, Any] = {
+                "chat_id": chat_id,
+                "text": chunk,
+            }
+            
+            # Only reply to the original message for the first chunk
+            if reply_to_message_id and i == 0:
+                data["reply_to_message_id"] = reply_to_message_id
+            
+            if parse_mode:
+                data["parse_mode"] = parse_mode
+            
+            result = await self._request("sendMessage", data=data)
+        
+        return result
     
     async def send_chat_action(
         self,
