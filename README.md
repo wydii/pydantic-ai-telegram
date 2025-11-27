@@ -2,7 +2,7 @@
 
 Wrap any [Pydantic AI](https://ai.pydantic.dev/) agent with Telegram in one line of code.
 
-**Why?** Pydantic AI makes building AI agents simple. This library lets you expose them via Telegram instantly — perfect for personal assistants, prototypes, or internal tools.
+**Why?** Pydantic AI makes building AI agents simple. This library lets you expose them via Telegram instantly — perfect for personal assistants, prototypes, or internal tools - Image, documents and voice memos are supported natively.
 
 ## Installation
 
