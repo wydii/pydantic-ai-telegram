@@ -1,0 +1,84 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pydantic-ai-telegram"
+version = "0.1.0"
+description = "A Python library for integrating Pydantic AI agents with Telegram bots"
+authors = [
+    {name = "Wydii", email = "wydii@bageera.io"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+keywords = ["pydantic-ai", "telegram", "bot", "ai", "agent"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "pydantic-ai>=0.0.1",
+    "pydantic>=2.0.0",
+    "httpx>=0.27.0",
+    "tiktoken>=0.5.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+whisper = [
+    "openai-whisper>=20231117",
+    "torch>=2.0.0",
+    "ffmpeg-python>=0.2.0",
+]
+openai = [
+    "openai>=1.0.0",
+]
+all = [
+    "pydantic-ai-telegram[whisper,openai]",
+]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.7.0",
+    "ruff>=0.0.285",
+    "mypy>=1.5.0",
+]
+
+[project.scripts]
+pydantic-ai-telegram-config = "pydantic_ai_telegram.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/wydii/pydantic-ai-telegram"
+Repository = "https://github.com/wydii/pydantic-ai-telegram"
+Issues = "https://github.com/wydii/pydantic-ai-telegram/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pydantic_ai_telegram*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+

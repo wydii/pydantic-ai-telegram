@@ -1,0 +1,9 @@
+include README.md
+include LICENSE
+include pyproject.toml
+
+recursive-include pydantic_ai_telegram *.py py.typed
+recursive-include examples *.py
+
+exclude .env
+exclude .env.*
